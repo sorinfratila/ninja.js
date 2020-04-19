@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import './App.css';
-import PropTypes from 'prop-types';
 import getData, { search } from '../src/networking/getData';
 import Search from './components/Search/Search.jsx';
 import Pagination from './components/Pagination/Pagination.jsx';
@@ -8,16 +7,7 @@ import { ROWS_LIMIT } from './utils/constants';
 import DataTable from './components/DataTable/DataTable.jsx';
 
 class App extends Component {
-  static propType = {
-    list: PropTypes.array,
-    currentPageNumber: PropTypes.number,
-    totalNumberOfPages: PropTypes.number,
-  };
-
-  constructor() {
-    super();
-    this.searchResults = [];
-  }
+  searchResults = []; // used to keep the search results for pagination when searching
 
   state = {
     list: [],
@@ -72,16 +62,16 @@ class App extends Component {
 
   changeToPageNumber = (pageNumber) => {
     const { search } = this.state;
+    const startIndex = (pageNumber - 1) * ROWS_LIMIT;
 
     if (search !== '') {
-      const startIndex = (pageNumber - 1) * ROWS_LIMIT;
       this.setState({
         list: this.searchResults.slice(startIndex, startIndex + ROWS_LIMIT),
         currentPageNumber: pageNumber,
       });
     } else {
       const payload = {
-        offset: (pageNumber - 1) * ROWS_LIMIT,
+        offset: startIndex,
         limit: ROWS_LIMIT,
       };
 

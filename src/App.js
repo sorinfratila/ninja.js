@@ -1,11 +1,11 @@
 import React, { Component } from 'react';
-import DataTable from './components/DataTable/DataTable';
 import './App.css';
 import PropTypes from 'prop-types';
 import getData, { search } from '../src/networking/getData';
-import Search from './DataTable/Search';
-import Pagination from './components/Pagination/Pagination';
+import Search from './components/Search/Search.jsx';
+import Pagination from './components/Pagination/Pagination.jsx';
 import { ROWS_LIMIT } from './utils/constants';
+import DataTable from './components/DataTable/DataTable.jsx';
 
 class App extends Component {
   static propType = {
@@ -14,11 +14,15 @@ class App extends Component {
     totalNumberOfPages: PropTypes.number,
   };
 
+  constructor() {
+    super();
+    this.searchResults = [];
+  }
+
   state = {
     list: [],
     currentPageNumber: 0,
     totalNumberOfPages: 0,
-    totalEntries: 0,
     search: '',
   };
 
@@ -33,9 +37,10 @@ class App extends Component {
     this.setState({
       list: data,
       currentPageNumber: 1,
-      totalEntries: total,
       totalNumberOfPages: nrOfPages,
     });
+
+    this.searchResults = [];
   };
 
   calculateTotalNumberOfPages = (nrOfRows, rowsPerPage) => {
@@ -47,17 +52,18 @@ class App extends Component {
     const text = event.target.value;
     this.setState({ search: text });
 
-    if (text === '') {
-      this.init();
-    } else {
+    if (text === '') this.init();
+    else {
       const result = search(text);
+      this.searchResults = result;
+
       const nrOfPages = this.calculateTotalNumberOfPages(
         result.length,
         ROWS_LIMIT
       );
 
       this.setState({
-        list: result,
+        list: this.searchResults.slice(0, ROWS_LIMIT),
         currentPageNumber: 1,
         totalNumberOfPages: nrOfPages,
       });
@@ -65,17 +71,27 @@ class App extends Component {
   };
 
   changeToPageNumber = (pageNumber) => {
-    const payload = {
-      offset: (pageNumber - 1) * ROWS_LIMIT,
-      limit: ROWS_LIMIT,
-    };
+    const { search } = this.state;
 
-    const { data } = getData(payload);
+    if (search !== '') {
+      const startIndex = (pageNumber - 1) * ROWS_LIMIT;
+      this.setState({
+        list: this.searchResults.slice(startIndex, startIndex + ROWS_LIMIT),
+        currentPageNumber: pageNumber,
+      });
+    } else {
+      const payload = {
+        offset: (pageNumber - 1) * ROWS_LIMIT,
+        limit: ROWS_LIMIT,
+      };
 
-    this.setState({
-      currentPageNumber: pageNumber,
-      list: data,
-    });
+      const { data } = getData(payload);
+
+      this.setState({
+        currentPageNumber: pageNumber,
+        list: data,
+      });
+    }
   };
 
   render() {
@@ -85,11 +101,13 @@ class App extends Component {
       <div className='container mt-3'>
         <Search onSearch={this.search} />
         <DataTable list={list}></DataTable>
-        <Pagination
-          currentPageNumber={currentPageNumber}
-          totalNumberOfPages={totalNumberOfPages}
-          onChange={this.changeToPageNumber}
-        ></Pagination>
+        <div className='pagination_container'>
+          <Pagination
+            currentPageNumber={currentPageNumber}
+            totalNumberOfPages={totalNumberOfPages}
+            onChange={this.changeToPageNumber}
+          ></Pagination>
+        </div>
       </div>
     );
   }

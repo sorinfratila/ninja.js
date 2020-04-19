@@ -13,3 +13,8 @@
 .pagination li {
   display: inline-block;
 }
+
+.pagination_container {
+  bottom: 0;
+  position: fixed;
+}

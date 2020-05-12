@@ -3,7 +3,7 @@
 }
 
 .mr-1 {
-  margin-right: .5rem;
+  margin-right: 0.5rem;
 }
 
 .pagination {
@@ -12,4 +12,9 @@
 
 .pagination li {
   display: inline-block;
+}
+
+.pagination_container {
+  bottom: 0;
+  position: fixed;
 }
